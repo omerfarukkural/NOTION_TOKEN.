@@ -13,12 +13,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - name: Install deps
-        run: npm i --no-audit --no-fund
+        run: npm ci || npm i
       - name: Run updater
         env:
           NOTION_TOKEN: $ secrets.NOTION_TOKEN 
           DATABASE_ID: $ secrets.DATABASE_ID 
           TZ: Europe/Istanbul
-        run: npm run update:sla
+        run: node scripts/updateSLA.js
