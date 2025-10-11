@@ -1,0 +1,23 @@
+name: Update SLA Daily
+on:
+  schedule:
+    - cron: "0 3 * * *"  # 06:00 Europe/Istanbul ≈ 03:00 UTC
+  workflow_dispatch: {}
+jobs:
+  update-sla:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm ci || npm i
+      - name: Run updater
+        env:
+          NOTION_TOKEN: $ secrets.NOTION_TOKEN 
+          DATABASE_ID: $ secrets.DATABASE_ID 
+          TZ: Europe/Istanbul
+        run: node scripts/updateSLA.js
