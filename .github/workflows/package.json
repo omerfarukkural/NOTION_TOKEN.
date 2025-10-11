@@ -1,0 +1,13 @@
+{
+  "name": "sla-updater",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "update:sla": "node scripts/updateSLA.js"
+  },
+  "dependencies": {
+    "luxon": "^3.5.0",
+    "node-fetch": "^3.3.2"
+  }
+}
