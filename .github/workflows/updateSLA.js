@@ -70,14 +70,39 @@ function getStatus(page) { return prop(page, 'Durum')?.status?.name || null }
 function getDue(page) { return prop(page, 'Bitiş')?.date?.start || null }
 function getSLA(page) { return prop(page, 'SLA')?.select?.name || null }
 
+
+// Slack bildirim fonksiyonu
+async function sendSlackNotification(message) {
+  const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL
+  if (!SLACK_WEBHOOK) return
+  
+  try {
+    await fetch(SLACK_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: message })
+    })
+  } catch (error) {
+    console.error('Slack bildirimi gönderilemedi:', error)
+  }
+}
+
 async function run() {
   const pages = await listDatabasePages(DATABASE_ID)
   let updated = 0
+    let violations = []
+  let risks = []
+
   for (const p of pages) {
     const status = getStatus(p)
     const dueISO = getDue(p)
     const current = getSLA(p)
     const target = computeSLA({ status, dueISO })
+
+        // SLA durumlarını takip et
+    if (target === 'İhlal') violations.push(p)
+    if (target === 'Riskte') risks.push(p)
+
     if (target && target !== current) {
       await updatePageSLA(p.id, target)
       updated++
@@ -85,6 +110,15 @@ async function run() {
     }
   }
   console.log(`SLA updated for ${updated} pages`)
+
+    // Slack bildirimi gönder
+  let slackMsg = `📊 *SLA Güncellemesi*\n`
+  slackMsg += `✅ ${updated} görev güncellendi\n`
+  if (violations.length > 0) slackMsg += `🔴 ${violations.length} görev ihlalde\n`
+  if (risks.length > 0) slackMsg += `⚠️ ${risks.length} görev riskli\n`
+  
+  await sendSlackNotification(slackMsg)
+
 }
 
 run().catch(err => { console.error(err); process.exit(1) })
