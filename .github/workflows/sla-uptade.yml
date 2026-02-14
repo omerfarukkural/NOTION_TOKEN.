@@ -20,4 +20,4 @@ jobs:
           NOTION_TOKEN: $ secrets.NOTION_TOKEN 
           DATABASE_ID: $ secrets.DATABASE_ID 
           TZ: Europe/Istanbul
-        run: node scripts/updateSLA.js
+        run: node .github/workflows/updateSLA.js
